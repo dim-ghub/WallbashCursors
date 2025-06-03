@@ -1,13 +1,15 @@
 # WallbashCursors
 A shell and python script to generate x11 and hyprcursors for HyDE using wallbash
 
-This will NOT be executed automatically bc its a long process, run the shell script manually when you wanna generate new cursors
+Dependencies:
+
+```bash
+sudo pacman -S xcur2png imagemagick jq xcursorgen unzip zip python python-pillow python-numpy python-scikit-image --needed
+```
 
 Make the scripts executable then extract the base cursor pack.
 
 Refresh wallbash/hyde in whatever way works best for you
-
-Then run the shell script to generate the pack.
 
 These are the supported sizes:
 
