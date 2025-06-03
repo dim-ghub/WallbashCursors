@@ -7,8 +7,6 @@ from PIL import Image
 from concurrent.futures import ProcessPoolExecutor
 from skimage.color import rgb2lab
 
-# variables
-
 def hex_to_rgb(hex_color):
     hex_color = hex_color.lstrip("#")
     return [int(hex_color[i:i+2], 16) for i in (0, 2, 4)]
@@ -26,8 +24,6 @@ def recolor_image(job):
     base_lab = job["base_lab"]
     target_rgb = job["target_rgb"]
 
-    # whole bunch of math shit to recolor the images
-    
     try:
         img = Image.open(img_path).convert("RGBA")
         data = np.array(img)
@@ -37,26 +33,30 @@ def recolor_image(job):
 
         recolored = rgb.copy()
 
-        # masks
+        # Prepare masks
         fully_transparent = alpha == 0
         semi_transparent = (alpha > 0) & (alpha < 255)
         opaque_or_semi = ~fully_transparent
 
         rgb[semi_transparent] = [0, 0, 0]  # match as black
 
-        # converts to Lab bc i couldnt get it working with the old method
+        # Convert to Lab
         rgb_lab = rgb2lab(rgb.reshape(1, -1, 3)).reshape(-1, 3)
 
-        # only recolor pixels that aren't fully transparent (learned this the hard way)
+        # Only recolor pixels that aren't fully transparent
         recolor_lab = rgb_lab[opaque_or_semi]
 
+        # Compute distances to palette
         distances = np.linalg.norm(recolor_lab[:, None, :] - base_lab[None, :, :], axis=2)
 
+        # Use inverse distance weighting for smooth interpolation
         inv_dist = 1 / (distances + 1e-6)
         weights = inv_dist / np.sum(inv_dist, axis=1, keepdims=True)
 
+        # Interpolated RGB (in float 0–255)
         new_rgb = weights @ target_rgb
 
+        # Merge recolored pixels back into full image
         full_rgb = recolored.reshape(-1, 3) * 255
         full_rgb[opaque_or_semi] = new_rgb
 
@@ -69,8 +69,6 @@ def recolor_image(job):
 
     except Exception as e:
         print(f"Failed to process {img_path}: {e}", file=sys.stderr)
-
-# job handling
 
 def main():
     jobs = json.load(sys.stdin)
