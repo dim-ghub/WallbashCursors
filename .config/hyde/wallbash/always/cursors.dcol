@@ -1,4 +1,4 @@
-$HOME/.cache/cursors.txt
+$HOME/.cache/cursors.txt|hyprctl dispatch exec '~/.config/hyde/wallbash/scripts/cursors.sh'
 #D40000
 #<wallbash_2xa7>
 #<wallbash_pry2>
